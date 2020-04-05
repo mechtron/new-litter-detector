@@ -44,7 +44,7 @@ def keyword_detected(page_text, keywords):
 
 def get_page_text(url):
     r = requests.get(url, allow_redirects=True)
-    soup = BeautifulSoup(r.content)
+    soup = BeautifulSoup(r.content, features="html.parser")
     for script in soup(["script", "style"]):
         script.extract()    # rip it out
     text = soup.get_text()
