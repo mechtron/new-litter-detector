@@ -4,13 +4,18 @@ By Corey Gale (`mechtrondev[at]gmail.com`)
 
 ## Executive summary
 
-Exports AWS reservation data for a particular AWS account to a Google Sheet for further analysis. Provisions a AWS Lambda function that runs every hour to keep your Google Sheet data up-to-date.
+AWS Lambda function that checks a target web page for updates. When the page changes, the specified list of SMS numbers will be notified with the type of change detected.
+
+Detectable changes:
+
+1. Updated page last modified date
+1. The presence of specified key words
+1. Hash of page text changes
 
 ## Features
 
-1. Easy configuration: write a few lines of yaml to configure exported data
-1. Updates Google Sheets very quickly
-1. Includes AWS Lambda function with hourly CloudWatch Events trigger
+1. Easy configuration: write a few lines of yaml to configure monitored webpage
+1. Includes AWS Lambda function with CloudWatch Events trigger (every 10 minutes)
 1. Built-in GitHub Actions deployment workflow
 
 ## Deploying `new-litter-detector` to your AWS account
@@ -20,13 +25,6 @@ Exports AWS reservation data for a particular AWS account to a Google Sheet for 
 1. [Fork](https://help.github.com/en/github/getting-started-with-github/fork-a-repo) this repository to your GitHub account
 
 ### Obtain the necessary credentials
-
-1. Obtain Google OAuth2 credentials:
-	1. Open the [Google Developers Console](https://console.developers.google.com/project), select your organization and create a new project/select an existing one.
-	1. Click the hamburger menu on the left > APIs & Services > Library
-	1. Enable the Google Sheets and Google Drive APIs
-	1. Click the back arrow and then the "Credentials" link on the left menu
-	1. Click Create credentials > Service account key > New service account. Give your service account a name, make sure "JSON" is selected and click "Create". A JSON file will be automatically downloaded whose contents is your Google service account.
 
 1. Create an AWS service user account with the following policy:
 	```
@@ -62,7 +60,6 @@ Exports AWS reservation data for a particular AWS account to a Google Sheet for 
 	| :----: | :----: |
 	| `AWS_ACCESS_KEY_ID` | Your AWS service account's Access key ID (from the previous step) |
 	| `AWS_SECRET_ACCESS_KEY` | Your AWS service account's Access secret access key (from the previous step) |
-	| `GOOGLE_SERVICE_CREDS_JSON` | Your Google OAuth2 credentials (contents of JSON file) |
 
 ### Update prod environment config
 
@@ -78,12 +75,11 @@ Exports AWS reservation data for a particular AWS account to a Google Sheet for 
 1. Open the `prod` environment's config yaml `config/prod.yml` and update the values to define the shape of your report:
 	| Parameter | Description | Allowed values |
 	| :----: | :----: | :----: |
-	| `google_sheets.sheet_name` | Name of the Google Sheet from the previous step | `String` |
-	| `aws.enabled_reports[]` | List of enabled reports. Supported options: `ec2`, `rds` | `List` |
-	| `aws.regions[]` | List of AWS regions to scrape data for | `List` |
-	| `aws.accounts[]` | List of AWS accounts to scrape data for | `List` |
-	| `aws.ec2_tag_groups[]` | List of EC2 instance tags to scrape data for | `List` |
-	| `aws.rds_tag_groups[]` | List of RDS instance tags to scrape data for | `List` |
+	| `page_url` | Name of the Google Sheet from the previous step | `String` |
+	| `last_updated` | List of enabled reports. Supported options: `ec2`, `rds` | `List` |
+	| `last_known_text_hash` | List of AWS regions to scrape data for | `List` |
+	| `keywords[]` | List of AWS accounts to scrape data for | `List` |
+	| `alert_numbers[]` | List of EC2 instance tags to scrape data for | `List` |
 
 1. Commit your changes to the `master` branch and your `prod` environment will be deployed via GitHub Actions
 
@@ -91,83 +87,22 @@ Exports AWS reservation data for a particular AWS account to a Google Sheet for 
 
 ```
 --- 
-  google_sheets:
-    sheet_name: Reserved Instances Analyzer
-  
-  aws:
-    enabled_reports:
-      - ec2
-      - rds
+  page_url: "https://www.gailslabradoodles.com/current-litters"
 
-    regions:
-      - us-east-1
-      - us-west-2
+  last_updated: 4/4/20
 
-    accounts:
-      - name: prod
-        assume_role: false
-      - name: stage
-        assume_role_arn: "arn:aws:iam::123456789123:role/ReservedInstancesDataLambda"
+  last_known_text_hash: 3430a9cc01b4fe9748398853e407703600276cae
 
-    ec2_tag_groups:
-      - aws_region: us-east-1
-        tag_name: Name
-        tag_value: va-api--prod
-      - aws_region: us-west-2
-        tag_name: Name
-        tag_value: or-api--prod
+  keywords:
+    - Luna
+    - Turner
+    - Mini
+    - Huck
 
-    rds_tag_groups:
-      - aws_region: us-east-1
-        tag_name: DBName
-        tag_value: va-db--prod
+  alert_numbers:
+    - "+12345678901"
+    - "+98765432109"
 ```
-
-#### Example IAM policy
-
-If you are assuming IAM roles to scrape data from additional AWS accounts, they should have at least the following permissions:
-
-```
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Sid": "DescribeReservedInstances",
-            "Effect": "Allow",
-            "Action": [
-            	"ec2:DescribeInstances",
-              	"ec2:DescribeReservedInstances",
-              	"ec2:DescribeReservedInstancesOfferings",
-              	"rds:DescribeDBInstances",
-              	"rds:DescribeReservedDBInstances",
-              	"rds:DescribeReservedDBInstancesOfferings",
-              	"rds:ListTagsForResource"
-            ],
-            "Resource": "*"
-        }
-    ]
-}
-```
-
-Don't forget to set the account-level trust relationship on IAM role being assumed!
-
-```
-{
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-			"Effect": "Allow",
-			"Principal": {
-				"AWS": "arn:aws:iam::123456789456:root"
-			},
-			"Action": "sts:AssumeRole",
-			"Condition": {}
-		}
-  	]
-}
-```
-
-Where `123456789456` is the AWS account ID of the account running the Lambda function.
 
 ### Destroying environments
 
@@ -212,15 +147,3 @@ Creating new environments is easy:
 #### Estimated cost
 
 All of the AWS resources provisioned by this project fit within [AWS's always-free tier](https://aws.amazon.com/free/?all-free-tier.sort-by=item.additionalFields.SortRank&all-free-tier.sort-order=asc&awsf.Free%20Tier%20Types=tier%23always-free). Just to be safe, I suggest that you set up a [billing alarm](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/monitor_estimated_charges_with_cloudwatch.html) for your AWS account to avoid any bill shock.
-
-## To do
-
-Consider adding reports with data from Cost Explorer:
-
-1. [CostExplorer.Client.get_reservation_coverage](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ce.html#CostExplorer.Client.get_reservation_coverage)
-1. [CostExplorer.Client.get_reservation_purchase_recommendation](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ce.html#CostExplorer.Client.get_reservation_purchase_recommendation)
-1. [CostExplorer.Client.get_reservation_utilization](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ce.html#CostExplorer.Client.get_reservation_utilization)
-1. [CostExplorer.Client.get_rightsizing_recommendation](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ce.html#CostExplorer.Client.get_rightsizing_recommendation)
-1. [CostExplorer.Client.get_savings_plans_coverage](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ce.html#CostExplorer.Client.get_savings_plans_coverage)
-1. [CostExplorer.Client.get_savings_plans_utilization](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ce.html#CostExplorer.Client.get_savings_plans_utilization)
-1. [CostExplorer.Client.get_savings_plans_utilization_details](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ce.html#CostExplorer.Client.get_savings_plans_utilization_details)
