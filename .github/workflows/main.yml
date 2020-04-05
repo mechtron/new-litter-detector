@@ -17,10 +17,10 @@ jobs:
         pip install -r $GITHUB_WORKSPACE/notifier/requirements.txt -t $GITHUB_WORKSPACE/notifier
     - name: Set environment
       id: set_env
-      uses: mechtron/new-litter-detector/set-env-action@master
+      uses: mechtron/new-litter-detector/set-env-action@0.1.0
     - name: Run Terragrunt
       id: run_terragrunt
-      uses: mechtron/new-litter-detector/terragrunt-action@master
+      uses: mechtron/new-litter-detector/terragrunt-action@0.1.0
       with:
         env: ${{ steps.set_env.outputs.env }}
         tf_action: apply
