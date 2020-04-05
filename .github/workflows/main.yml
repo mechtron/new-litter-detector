@@ -1,5 +1,10 @@
 name: Deploy new-litter-detector to AWS Lambda
-on: [push]
+on:
+  push:
+    branches:
+      - '*'
+    tags:
+      - '*'
 jobs:
   build_and_deploy_job:
     name: Build and deploy
