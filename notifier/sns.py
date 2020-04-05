@@ -17,12 +17,12 @@ def subscribe_user_sms_number_to_sns_topic(user, sns_topic):
     assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
 
 
-def send_sms_notification(user, message):
+def send_sms_notification(sms_number, message):
     # if not user["sms_number_subscribed"]:
     #     subscribe_user_sms_number_to_sns_topic(user, SNS_TOPIC_ARN)
-    print("Sending SMS notification to {}..".format(user["sms_number"]))
+    print("Sending SMS notification to {}..".format(sms_number))
     response = SNS_CLIENT.publish(
-        PhoneNumber=user["sms_number"],
+        PhoneNumber=str(sms_number),
         Message=message,
     )
     assert "MessageId" in response
