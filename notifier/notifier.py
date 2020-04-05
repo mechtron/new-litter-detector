@@ -20,6 +20,7 @@ def generate_sms_message(reason, page_url):
 def page_hash_differs(page_contents, last_known_text_hash):
     hash_object = hashlib.sha1(page_contents.encode('utf-8'))
     digest = hash_object.hexdigest()
+    print("The calculated page hash is {}".format(digest))
     return last_known_text_hash.strip() != digest
 
 
