@@ -1,0 +1,7 @@
+notifier/__pycache__
+notifier/venv
+notifier/bin
+
+notifier/config.yml
+
+*.pyc
