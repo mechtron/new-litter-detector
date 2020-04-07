@@ -139,7 +139,8 @@ Creating new environments is easy:
 
 #### Resources
 
-- Lambda function triggered by CloudWatch Events (fires hourly)
+- Lambda function triggered by CloudWatch Events
+   - Fires on the 1st, 10th, 20th, 30th, 40th and 50th minutes of the hour
 - CloudWatch Log Stream for Lambda function output
 
 #### Estimated cost
