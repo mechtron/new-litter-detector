@@ -29,8 +29,9 @@ def last_updated_date_different(page_text, last_updated_date):
         r"([0-9]*\/[0-9]*\/[0-9]*)".format(), page_text,
     )
     if match:
-        detected_date = match.group(1)
-        if last_updated_date.strip() != detected_date.strip():
+        detected_date = match.group(1).strip()
+        if last_updated_date.strip() != detected_date:
+            print("Unexpected date {}!".format(detected_date))
             return True
     return False
 
@@ -39,6 +40,7 @@ def keyword_detected(page_text, keywords):
     page_text_lower = page_text.lower()
     for keyword in keywords:
         if keyword.lower() in page_text_lower:
+            print("Keyword detected {}!".format(keyword))
             return True
     return False
 
@@ -68,13 +70,22 @@ def main():
     config = load_config()
     page_contents = get_page_text(config["page_url"])
     reason = None
-    if keyword_detected(page_contents, config["keywords"]):
+    if (
+        "keywords" in config and
+        keyword_detected(page_contents, config["keywords"])
+    ):
         print("Page updated! A keyword was detected.")
         reason = "keyword detected"
-    elif last_updated_date_different(page_contents, config["last_updated"]):
+    elif (
+        "last_updated" in config and
+        last_updated_date_different(page_contents, config["last_updated"])
+    ):
         print("Page updated! Last modified date differs.")
         reason = "last updated date different"
-    elif page_hash_differs(page_contents, config["last_known_text_hash"]):
+    elif (
+        "last_known_text_hash" in config and
+        page_hash_differs(page_contents, config["last_known_text_hash"])
+    ):
         print("Page hash differs! An unkown change was detected.")
         reason = "unknown change detected"
     else:
