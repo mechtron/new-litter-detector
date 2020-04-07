@@ -68,18 +68,16 @@ Detectable changes:
 	1. `remote_state['config']['lock_table']`
 
 	NOTE: if you are not deploying to AWS's `us-east-1` region, please specify your desired region by updating the `inputs` variable `aws_region` at the bottom of `terraform/terragrunt/terragrunt.hcl`.
-1. Open/create the target Google Sheets spreadsheet and share it with the email contained in the Google auth JSON (under `client_email`). Make sure the user has "Can edit" permissions.
 1. Open the `prod` environment's Terragrunt values `terraform/terragrunt/prod/terragrunt.hcl` and update the following values:
 	1. `environment` is the name of your environment
-	1. `ses_from_email` is the address you wish to send failure notification emails from.
 1. Open the `prod` environment's config yaml `config/prod.yml` and update the values to define the shape of your report:
 	| Parameter | Description | Allowed values |
 	| :----: | :----: | :----: |
-	| `page_url` | Name of the Google Sheet from the previous step | `String` |
-	| `last_updated` | List of enabled reports. Supported options: `ec2`, `rds` | `List` |
-	| `last_known_text_hash` | List of AWS regions to scrape data for | `List` |
-	| `keywords[]` | List of AWS accounts to scrape data for | `List` |
-	| `alert_numbers[]` | List of EC2 instance tags to scrape data for | `List` |
+	| `page_url` | The URL of the web page to monitor | `String` |
+	| `last_updated` | The expected "page last updated date" posted on the target page | `String` |
+	| `last_known_text_hash` | The expected hash of the web page's text | `String` |
+	| `keywords[]` | List of keywords to detect within the web page's text | `List` of `String`s |
+	| `alert_numbers[]` | List of SMS phone numbers to notify when new contents detected | `List` of `String`s |
 
 1. Commit your changes to the `master` branch and your `prod` environment will be deployed via GitHub Actions
 
