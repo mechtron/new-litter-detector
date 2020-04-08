@@ -25,7 +25,7 @@ jobs:
       uses: mechtron/new-litter-detector/set-env-action@0.1.0
     - name: Run Terragrunt
       id: run_terragrunt
-      uses: mechtron/new-litter-detector/terragrunt-action@0.1.0
+      uses: mechtron/new-litter-detector/terragrunt-action@phone-call-alerts
       with:
         env: ${{ steps.set_env.outputs.env }}
         tf_action: apply
