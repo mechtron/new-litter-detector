@@ -1,13 +1,13 @@
+import json
 import os
 
-from twilio.rest import Client
+import requests
+from requests.auth import HTTPBasicAuth
 
 
 TWILIO_ACCOUNT_SID = os.environ.get("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.environ.get("TWILIO_AUTH_TOKEN")
 TWILIO_FROM_NUMBER = os.environ.get("TWILIO_FROM_NUMBER")
-
-TWILIO_CLIENT = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
 
 def call_phone_number(phone_number, message, mp3_link):
@@ -20,9 +20,16 @@ def call_phone_number(phone_number, message, mp3_link):
         message=message,
         mp3_link=mp3_link,
     )
-    call = TWILIO_CLIENT.calls.create(
-        twiml=twiml_string,
-        to=phone_number,
-        from_=TWILIO_FROM_NUMBER,
+    resp = requests.post(
+        "https://api.twilio.com/2010-04-01/Accounts/{}/Calls.json".format(
+            TWILIO_ACCOUNT_SID
+        ),
+        data={
+            "Twiml": twiml_string,
+            "To": phone_number,
+            "From": TWILIO_FROM_NUMBER,
+
+        },
+        auth=HTTPBasicAuth(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
     )
-    print("Twilio call SID: {}".format(call.sid))
+    print("Twilio call SID: {}".format(json.loads(resp.content)["sid"]))
