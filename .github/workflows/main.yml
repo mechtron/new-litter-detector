@@ -25,10 +25,12 @@ jobs:
       uses: mechtron/new-litter-detector/set-env-action@0.1.0
     - name: Run Terragrunt
       id: run_terragrunt
-      uses: mechtron/new-litter-detector/terragrunt-action@phone-call-alerts
+      uses: mechtron/new-litter-detector/terragrunt-action@0.4.0
       with:
-        env: ${{ steps.set_env.outputs.env }}
-        tf_action: apply
+        # env: ${{ steps.set_env.outputs.env }}
+        # tf_action: apply
+        env: test
+        tf_action: destroy
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
