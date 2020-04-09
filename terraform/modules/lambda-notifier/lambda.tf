@@ -16,11 +16,14 @@ resource "aws_lambda_function" "lambda_function" {
   source_code_hash = data.archive_file.lambda_zip.output_base64sha256
   runtime          = "python3.6"
   memory_size      = "128"
-  timeout          = "30"
+  timeout          = "60"
 
   environment {
     variables = {
-      SNS_TOPIC_ARN = aws_sns_topic.sms_notifications.arn
+      SNS_TOPIC_ARN       = aws_sns_topic.sms_notifications.arn
+      TWILIO_ACCOUNT_SID  = var.twilio_account_sid
+      TWILIO_AUTH_TOKEN   = var.twilio_auth_token
+      TWILIO_FROM_NUMBER  = var.twilio_from_number
     }
   }
 

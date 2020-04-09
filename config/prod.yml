@@ -1,15 +1,20 @@
 --- 
   page_url: "https://www.gailslabradoodles.com/current-litters"
 
-  last_updated: 4/6/20
+  last_updated: 4/8/20
 
-  last_known_text_hash: 165dc6c1a3e3c887b5deaad27011823d56b94b92
+  last_known_text_hash: aee7c9da1eca538f691d8d7fefac9f973d9f583e
 
-  keywords:
-    - Luna
+  keywords_sms:
     - Turner
     - Mini
 
-  alert_numbers:
+  keywords_phone:
+    - Luna
+
+  sms_numbers:
     - "+***REMOVED***"
+    - "+***REMOVED***"
+
+  phone_numbers:
     - "+***REMOVED***"

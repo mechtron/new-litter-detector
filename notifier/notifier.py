@@ -7,14 +7,7 @@ import requests
 import yaml
 
 from sns import send_sms_notification
-
-
-def generate_sms_message(reason, page_url):
-    return (
-        "A change was detected ({reason})! Check it out: {page_url}".format(
-            reason=reason, page_url=page_url
-        )
-    )
+from twilio_call import call_phone_number
 
 
 def page_hash_differs(page_contents, last_known_text_hash):
@@ -41,7 +34,7 @@ def keyword_detected(page_text, keywords):
     for keyword in keywords:
         if keyword.lower() in page_text_lower:
             print("Keyword detected {}!".format(keyword))
-            return True
+            return keyword
     return False
 
 
@@ -66,13 +59,43 @@ def load_config():
         return yaml.safe_load(stream)
 
 
-def main():
-    config = load_config()
-    page_contents = get_page_text(config["page_url"])
+def generate_phone_call_message(keyword_detected):
+    return (
+        "Hello fellow dog seeker! I detected the keyword {keyword_detected}"
+        " - do you think there could be a new litter?!"
+    ).format(
+        keyword_detected=keyword_detected,
+    )
+
+
+def check_for_phone_alerts(config, page_contents):
+    if "keywords_phone" in config:
+        keyword = keyword_detected(page_contents, config["keywords_phone"])
+        if keyword:
+            print("Page updated! A phone keyword was detected.")
+            for alert_number in config["phone_numbers"]:
+                call_phone_number(
+                    alert_number,
+                    generate_phone_call_message(keyword),
+                    "https://www.redringtones.com/wp-content/uploads/2018/03/who-let-the-dogs-out-ringtone.mp3",
+                )
+    else:
+        print("No phone-priority page changes detected")
+
+
+def generate_sms_message(reason, page_url):
+    return (
+        "A change was detected ({reason})! Check it out: {page_url}".format(
+            reason=reason, page_url=page_url
+        )
+    )
+
+
+def check_for_sms_alerts(config, page_contents):
     reason = None
     if (
-        "keywords" in config and
-        keyword_detected(page_contents, config["keywords"])
+        "keywords_sms" in config and
+        keyword_detected(page_contents, config["keywords_sms"])
     ):
         print("Page updated! A keyword was detected.")
         reason = "keyword detected"
@@ -91,13 +114,20 @@ def main():
     else:
         print("No page changes detected")
     if reason:
-        for alert_number in config["alert_numbers"]:
+        for alert_number in config["sms_numbers"]:
             send_sms_notification(
                 alert_number,
                 generate_sms_message(
                     reason, config["page_url"]
                 ),
             )
+
+
+def main():
+    config = load_config()
+    page_contents = get_page_text(config["page_url"])
+    check_for_phone_alerts(config, page_contents)
+    check_for_sms_alerts(config, page_contents)
 
 
 def handler(_event, _context):

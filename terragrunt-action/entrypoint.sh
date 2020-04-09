@@ -7,6 +7,9 @@ cp $GITHUB_WORKSPACE/config/$1.yml $GITHUB_WORKSPACE/notifier/config.yml
 
 # Set Terraform input vars
 export TF_VAR_repo_root_path=$GITHUB_WORKSPACE
+export TF_VAR_twilio_account_sid=$TWILIO_ACCOUNT_SID
+export TF_VAR_twilio_auth_token=$TWILIO_AUTH_TOKEN
+export TF_VAR_twilio_from_number=$TWILIO_FROM_NUMBER
 
 # Run Terragrunt
 cd $GITHUB_WORKSPACE/terraform/terragrunt/$1
