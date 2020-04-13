@@ -98,21 +98,22 @@ def check_for_sms_alerts(config, page_contents):
         keyword_detected(page_contents, config["keywords_sms"])
     ):
         print("Page updated! A keyword was detected.")
-        reason = "keyword detected"
-    elif (
+        if not reason:
+            reason = "keyword detected"
+    if (
         "last_updated" in config and
         last_updated_date_different(page_contents, config["last_updated"])
     ):
         print("Page updated! Last modified date differs.")
-        reason = "last updated date different"
-    elif (
+        if not reason:
+            reason = "last updated date different"
+    if (
         "last_known_text_hash" in config and
         page_hash_differs(page_contents, config["last_known_text_hash"])
     ):
         print("Page hash differs! An unkown change was detected.")
-        reason = "unknown change detected"
-    else:
-        print("No page changes detected")
+        if not reason:
+            reason = "unknown change detected"
     if reason:
         for alert_number in config["sms_numbers"]:
             send_sms_notification(
@@ -121,6 +122,8 @@ def check_for_sms_alerts(config, page_contents):
                     reason, config["page_url"]
                 ),
             )
+    else:
+        print("No page changes detected")
 
 
 def main():
